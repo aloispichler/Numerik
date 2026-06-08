@@ -1,11 +1,16 @@
 """
 	Levenberg-Marquardt algorithm
-	Find a solution, with ultimate accuracy, of the function f(⋅)= 0
+	Find a solution – with ultimate accuracy – of the function f(⋅)= 0
 	created: 2026, May
 	author©: Alois Pichler
 """
 
+# 	To solve the equation f(⋅)= 0 with constraints c(⋅)≤ 0,
+# 	consider solving the function [f; √μ c] with (outer)penalty max(0.0, c(⋅))²
+#	(or adjusted inner penalty) and adequate penalty weight μ.
+
 using LinearAlgebra, ForwardDiff
+
 
 #	╭────────────────────────────────────────────────────────────────
 #	│	dispatch: provide Jacobian by automatic differentiation, if not provided explicitly …
@@ -45,17 +50,17 @@ function LevenbergMarquardt(fun::Function, funD::Function, x0::Vector{Float64}; 
 			fMin= fTrial; ReductionActual= (nfMin^2 - nfTrial^2)/ 2; nfMin= nfTrial
 			if ReductionPredicted > 0
 				if ReductionActual > 0.75* ReductionPredicted	# gain_ratio ρ = ReductionActual / ReductionPredicted
-					λ/= 3
+					λ/= 3	# prediction was not bad
 				elseif ReductionActual < 0.25* ReductionPredicted
-					λ*= 2
+					λ*= 2	# prediction was poor
 				end
 			end
-		else # no improvement found. Try Gradient Descent, if iteration fails
+		else # iteration fails, no improvement found. Try Gradient Descent
 			λ*= 4; improvementFound= false
 		end
 		# @show evalCount, λ, nfMin #, xMin
 	end
 	nfMin > εAccuracy && @warn "Levenberg–Marquardt failed to converge: ‖f(x$(evalCount))‖= $(nfMin)"
 #	@info "Levenberg-Marquardt: $evalCount steps; residual= $nfMin"
-	return (xMin= xMin, normfMin= nfMin, evalCount= evalCount)
+	return (normfMin= nfMin, evalCount= evalCount, xMin= xMin)
 end
