@@ -1,6 +1,6 @@
 """
 	Levenberg-Marquart algorithm
-	Find a solution, with ultimate accuracy, of the function f(⋅)= 0 involving its explicit derivatife f'(⋅)
+	Find a solution, with ultimate accuracy, of the function f(⋅)= 0
 	created: 2026, May
 	author©: Alois Pichler
 """
@@ -8,9 +8,9 @@
 using LinearAlgebra, ForwardDiff
 
 #	╭────────────────────────────────────────────────────────────────
-#	│	dispatch, if Jacobian is not provided …
+#	│	dispatch: provide Jacobian by automatic differentiation, if not provided explicitly …
 function LevenbergMarquart(fun::Function, x0::Vector{Float64}; maxEval= 1000, εAccuracy= 1e-7)
-	# provide funD, the derivative (Jacobian) of fun
+	# Derivative of fun, if not provided
 	Jacobian = x -> ForwardDiff.jacobian(fun, x)
 	return LevenbergMarquart(fun, Jacobian, x0; maxEval= maxEval, εAccuracy=εAccuracy)
 end
