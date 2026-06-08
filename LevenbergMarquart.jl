@@ -1,5 +1,5 @@
 """
-	Levenberg-Marquart algorithm
+	Levenberg-Marquardt algorithm
 	Find a solution, with ultimate accuracy, of the function f(⋅)= 0
 	created: 2026, May
 	author©: Alois Pichler
@@ -9,15 +9,15 @@ using LinearAlgebra, ForwardDiff
 
 #	╭────────────────────────────────────────────────────────────────
 #	│	dispatch: provide Jacobian by automatic differentiation, if not provided explicitly …
-function LevenbergMarquart(fun::Function, x0::Vector{Float64}; maxEval= 1000, εAccuracy= 1e-7)
+function LevenbergMarquardt(fun::Function, x0::Vector{Float64}; maxEval= 1000, εAccuracy= 1e-7)
 	# Derivative of fun, if not provided
 	Jacobian = x -> ForwardDiff.jacobian(fun, x)
-	return LevenbergMarquart(fun, Jacobian, x0; maxEval= maxEval, εAccuracy=εAccuracy)
+	return LevenbergMarquardt(fun, Jacobian, x0; maxEval= maxEval, εAccuracy=εAccuracy)
 end
 
 #	╭────────────────────────────────────────────────────────────────
-#	│	Levenberg-Marquart iteration
-function LevenbergMarquart(fun::Function, funD::Function, x0::Vector{Float64}; maxEval= 1000, εAccuracy= 1e-7)
+#	│	Levenberg-Marquardt iteration
+function LevenbergMarquardt(fun::Function, funD::Function, x0::Vector{Float64}; maxEval= 1000, εAccuracy= 1e-7)
 	evalCount= 0
 	improvementFound= true; direction= Vector{Float64}(undef, length(x0))
 	grad= Vector{Float64}(undef, length(x0))
@@ -34,12 +34,11 @@ function LevenbergMarquart(fun::Function, funD::Function, x0::Vector{Float64}; m
 		if λ < λ0; λ= λ0; end 	# set initial regularization
 		direction= (Df2 + λ* I) \ grad; xTrial= xMin - direction
 		if xMin == xTrial
-			@info "LevenbergMarquart: no improvement ($(evalCount)): trying random direction …" 
+			@info "LevenbergMarquardt: no improvement ($(evalCount)): trying random direction …" 
 			direction= randn(length(x0))* (1e-7 + λ)
 			xTrial= xMin - direction
 		end
-		tmpLinear= grad'* direction; tmpQuadratic= direction'* Df2* direction/ 2
-		tmpDen= tmpLinear - tmpQuadratic
+		tmpDen= grad'* direction - direction'* Df2* direction/ 2
 		fTrial= fun(xTrial); nfTrial= norm(fTrial); evalCount+= 1
 		if nfTrial < nfMin # && tmpDen > 0
 			xMin= xTrial; improvementFound= true
@@ -56,7 +55,7 @@ function LevenbergMarquart(fun::Function, funD::Function, x0::Vector{Float64}; m
 		end
 		# @show evalCount, λ, nfMin #, xMin
 	end
-	nfMin > εAccuracy && @warn "Levenberg–Marquart failed to converge: ‖f(x$(evalCount))‖= $(nfMin)"
-#	@info "Levenberg-Marquart: $evalCount steps; residual= $nfMin"
+	nfMin > εAccuracy && @warn "Levenberg–Marquardt failed to converge: ‖f(x$(evalCount))‖= $(nfMin)"
+#	@info "Levenberg-Marquardt: $evalCount steps; residual= $nfMin"
 	return (xMin= xMin, normfMin= nfMin, evalCount= evalCount)
 end
